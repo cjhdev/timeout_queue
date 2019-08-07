@@ -7,6 +7,8 @@ It's like Queue except:
 - #unshift will put an object on the front of the queue
 - #delete can remove an object from the queue
 
+[![Build Status](https://travis-ci.org/cjhdev/timeout_queue.svg?branch=master)](https://travis-ci.org/cjhdev/timeout_queue)
+
 ## Usage
 
 Install as a Gem using your preferred method.
