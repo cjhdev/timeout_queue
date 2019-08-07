@@ -5,6 +5,8 @@ class TimeoutQueue
     @queue = []
     @mutex = Mutex.new
     @received = ConditionVariable.new
+    @closed = false
+    @waiting = []
       
   end
   
@@ -14,7 +16,7 @@ class TimeoutQueue
   # @return object
   #
   def push(object, **opt)
-    __push do 
+    __push(object) do 
       @queue.send(__method__, object)
     end  
   end
@@ -25,7 +27,7 @@ class TimeoutQueue
   # @return object
   #
   def unshift(object)
-    __push do 
+    __push(object) do 
       @queue.send(__method__, object)
     end
   end
@@ -58,15 +60,15 @@ class TimeoutQueue
   
     timeout = opts[:timeout]
   
-    if timeout
-                
-      end_time = Time.now + timeout.to_f
-    
-    end
-      
     with_mutex do
+
+      @waiting << Thread.current
     
-      while @queue.empty? and not(non_block)
+      if timeout              
+        end_time = Time.now + timeout.to_f    
+      end
+    
+      while @queue.empty? and not(non_block) and not(@closed)
       
         if timeout
         
@@ -82,12 +84,44 @@ class TimeoutQueue
       
       end 
       
-      raise ThreadError unless not @queue.empty?
+      @waiting.delete(Thread.current)
+      
+      if @queue.empty?
+      
+        if @closed
+          raise ClosedQueueError          
+        else
+          raise ThreadError
+        end
+        
+      else
                              
-      @queue.shift
+        @queue.shift
+      
+      end
             
     end
   
+  end
+  
+  def num_waiting
+    with_mutex do
+      @waiting.size
+    end
+  end
+  
+  def closed?
+    @closed
+  end
+
+  def close
+    with_mutex do
+      if not @closed
+        @closed = true
+        @waiting.each(&:wakeup)
+      end
+    end
+    self
   end
 
   def empty?
@@ -112,7 +146,8 @@ class TimeoutQueue
   end
   
   def __push(object)
-    with_mutex do          
+    with_mutex do   
+      raise ClosedQueueError if closed?      
       yield
       @received.signal                
     end    
