@@ -1,0 +1,8 @@
+notifications:
+    email: false
+language: Ruby
+rvm:
+  - 2.5
+script:
+  - bundle install
+  - bundle exec rake test
