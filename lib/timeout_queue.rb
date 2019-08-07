@@ -119,13 +119,13 @@ class TimeoutQueue
     object
   end
 
-  alias :length, :size
+  alias_method :length, :size
   
-  alias :'<<', :push
-  alias :enq, :push
+  alias_method :'<<', :push
+  alias_method :enq, :push
 
-  alias :shift, :pop
-  alias :deq, :pop
+  alias_method :shift, :pop
+  alias_method :deq, :pop
   
   private :with_mutex, :__push
 
