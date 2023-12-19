@@ -1,17 +1,12 @@
 class TimeoutQueue
     
-  # @param opts [Hash]
-  #
-  # @option opts [Integer] :max limit size of queue to max elements (silent drop)
-  #
-  def initialize(**opts)
+  def initialize(**opt)
   
     @queue = []
     @mutex = Mutex.new
     @received = ConditionVariable.new
     @closed = false
     @waiting = []
-    @max = opts[:max]
     
   end
   
@@ -153,7 +148,6 @@ class TimeoutQueue
   def __push(object)
     with_mutex do   
       raise ClosedQueueError if closed?      
-      return if @max and @queue.size == @max 
       yield
       @received.signal                
     end    
