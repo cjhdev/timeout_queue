@@ -5,34 +5,42 @@ describe "close a queue" do
 
   let(:q){ TimeoutQueue.new }
   
-  it "is not closed to start" do
-  
-    refute q.closed?
-  
+  describe "new queue is not closed" do
+
+    it "is not closed to start" do
+
+      refute q.closed?
+
+    end
+
   end
   
   describe "with waiters" do
   
     before do    
-      
+
       q.closed?
-      
+
       Thread.new do
-      
-        assert_raises ClosedQueueError do        
-          q.pop        
-        end
+
+        sleep 0.5
+
+        q.close
       
       end
       
-      q.close    
-      
     end
   
-    it "is closed" do      
-      assert q.closed?    
+    it "is closed" do
+
+      assert_raises ClosedQueueError do
+        q.pop
+      end
+
+      assert q.closed?
+
     end
     
   end
-  
+
 end
